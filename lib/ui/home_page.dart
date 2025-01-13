@@ -14,6 +14,10 @@ class _HomePageState extends State<HomePage> {
   Color privateColorAlice = Colors.green;
   Color privateColorBob = Colors.red;
   Color? result;
+  Color? mixedAlice;
+  Color? mixedBob;
+  Color? aliceFinalMix;
+  Color? bobFinalMix;
 
   Color mixColors(Color color1, Color color2, double ratio) {
     return Color.fromARGB(
@@ -24,27 +28,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Color mixColorsExactThird(Color color1, Color color2) {
-    return Color.fromARGB(
-      255,
-      ((color1.red / 3) + (2 * color2.red / 3)).toInt(),
-      ((color1.green / 3) + (2 * color2.green / 3)).toInt(),
-      ((color1.blue / 3) + (2 * color2.blue / 3)).toInt(),
-    );
-  }
-
   void calculateResult() {
-    final mixedAlice = mixColors(baseColor, privateColorAlice, 0.5);
-    final mixedBob = mixColors(baseColor, privateColorBob, 0.5);
+    final aliceMix = mixColors(baseColor, privateColorAlice, 0.5);
+    final bobMix = mixColors(baseColor, privateColorBob, 0.5);
+
+    final privateMix = mixColors(privateColorAlice, privateColorBob, 0.5);
+
+    final finalResult = mixColors(privateMix, baseColor, 0.66);
 
     setState(() {
-      result = mixColorsExactThird(privateColorAlice, mixedBob);
+      mixedAlice = aliceMix;
+      mixedBob = bobMix;
+      aliceFinalMix = finalResult;
+      bobFinalMix = finalResult;
+      result = finalResult;
     });
-
-    assert(
-      result == mixColorsExactThird(privateColorBob, mixedAlice),
-      "Les résultats ne sont pas identiques !",
-    );
   }
 
   String colorToHex(Color color) {
@@ -75,7 +73,7 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
-                'Selectionner',
+                'Sélectionner',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -108,147 +106,44 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(16.0),
             constraints: const BoxConstraints(maxWidth: 600),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  color: Colors.red.shade900,
-                  child: ListTile(
-                    title: const Text(
-                      'Couleur de base',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    subtitle: GestureDetector(
-                      onTap: () =>
-                          copyToClipboard(colorToHex(baseColor), context),
-                      child: Text(
-                        colorToHex(baseColor),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            decoration: TextDecoration.underline,
-                            color: Colors.white,
-                            decorationColor: Colors.white),
-                      ),
-                    ),
-                    trailing: GestureDetector(
-                      onTap: () => showColorPicker(
-                          context, 'Selectionner la couleur de base', baseColor,
-                          (color) {
-                        setState(() => baseColor = color);
-                      }),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: baseColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black26, width: 2),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                buildColorCard(
+                    'Couleur de base (publique)',
+                    baseColor,
+                    context,
+                    () => showColorPicker(
+                        context,
+                        'Sélectionner la couleur de base',
+                        baseColor,
+                        (color) => setState(() => baseColor = color))),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.all(8.0),
-                        color: Colors.red.shade900,
-                        child: ListTile(
-                          title: const Text(
-                            "Couleur d'Alice",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          subtitle: GestureDetector(
-                            onTap: () => copyToClipboard(
-                                colorToHex(privateColorAlice), context),
-                            child: Text(
-                              colorToHex(privateColorAlice),
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.white,
-                                  decorationColor: Colors.white),
-                            ),
-                          ),
-                          trailing: GestureDetector(
-                            onTap: () => showColorPicker(
-                                context,
-                                "Selectionner la couleur d'Alice",
-                                privateColorAlice, (color) {
-                              setState(() => privateColorAlice = color);
-                            }),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: privateColorAlice,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.black26, width: 2),
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: buildColorCard(
+                        "Couleur privée d'Alice",
+                        privateColorAlice,
+                        context,
+                        () => showColorPicker(
+                            context,
+                            "Sélectionner la couleur d'Alice",
+                            privateColorAlice,
+                            (color) =>
+                                setState(() => privateColorAlice = color)),
                       ),
                     ),
+                    const SizedBox(width: 16),
                     Expanded(
-                      child: Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.all(8.0),
-                        color: Colors.red.shade900,
-                        child: ListTile(
-                          title: const Text(
-                            "Couleur de Bob",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          subtitle: GestureDetector(
-                            onTap: () => copyToClipboard(
-                                colorToHex(privateColorBob), context),
-                            child: Text(
-                              colorToHex(privateColorBob),
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  decoration: TextDecoration.underline,
-                                  color: Colors.white,
-                                  decorationColor: Colors.white),
-                            ),
-                          ),
-                          trailing: GestureDetector(
-                            onTap: () => showColorPicker(
-                                context,
-                                "Selectionner la couleur de Bob",
-                                privateColorBob, (color) {
-                              setState(() => privateColorBob = color);
-                            }),
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: privateColorBob,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.black26, width: 2),
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: buildColorCard(
+                        "Couleur privée de Bob",
+                        privateColorBob,
+                        context,
+                        () => showColorPicker(
+                            context,
+                            "Sélectionner la couleur de Bob",
+                            privateColorBob,
+                            (color) => setState(() => privateColorBob = color)),
                       ),
                     ),
                   ],
@@ -261,10 +156,6 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: Colors.red.shade900,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                     child: const Text(
                       'Calculer le résultat',
@@ -273,51 +164,81 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                if (result != null)
-                  Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    color: Colors.red.shade900,
-                    child: ListTile(
-                      title: const Text(
-                        'Resultat du mélange',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          decorationColor: Colors.white
-                        ),
-                      ),
-                      subtitle: GestureDetector(
-                        onTap: () =>
-                            copyToClipboard(colorToHex(result!), context),
-                        child: Text(
-                          colorToHex(result!),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            decoration: TextDecoration.underline,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      trailing: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: result,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black26,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                if (mixedAlice != null)
+                  buildColorCard("Mélange public d'Alice (50/50)", mixedAlice!,
+                      context, null),
+                if (mixedBob != null)
+                  buildColorCard("Mélange public de Bob (50/50)", mixedBob!,
+                      context, null),
+                const SizedBox(height: 24),
+                if (aliceFinalMix != null)
+                  buildColorCard("Résultat final d'Alice (66/33)",
+                      aliceFinalMix!, context, null),
+                if (bobFinalMix != null)
+                  buildColorCard("Résultat final de Bob (66/33)", bobFinalMix!,
+                      context, null),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildColorCard(
+      String title, Color color, BuildContext context, VoidCallback? onTap) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      color: Colors.red.shade900,
+      child: ListTile(
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        subtitle: Row(
+          children: [
+            Text(
+              colorToHex(color),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+              onPressed: () => copyToClipboard(colorToHex(color), context),
+              tooltip: 'Copier le code couleur',
+            ),
+          ],
+        ),
+        trailing: onTap != null
+            ? GestureDetector(
+                onTap: onTap,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black26, width: 2),
+                  ),
+                ),
+              )
+            : Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black26, width: 2),
+                ),
+              ),
       ),
     );
   }
